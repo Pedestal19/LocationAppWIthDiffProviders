@@ -24,6 +24,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -40,6 +41,13 @@ public class MainActivity extends AppCompatActivity {
     TextView longitudeValueBest, latitudeValueBest;
     TextView longitudeValueGPS, latitudeValueGPS;
     TextView longitudeValueNetwork, latitudeValueNetwork;
+
+    double oldLongitudeBest=0;
+    double oldLatitudeBest=0;
+
+
+    private static final String TAG = "MainActivity";
+
 
 
     @Override
@@ -126,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
             criteria.setAltitudeRequired(false);
             criteria.setBearingRequired(false);
             criteria.setCostAllowed(true);
-            criteria.setPowerRequirement(Criteria.POWER_LOW);
+            criteria.setPowerRequirement(Criteria.POWER_HIGH);
             String provider = locationManager.getBestProvider(criteria, true);
             if(provider != null) {
 //                locationManager.requestLocationUpdates(provider, 2 * 60 * 1000, 10, locationListenerBest);
@@ -158,6 +166,46 @@ public class MainActivity extends AppCompatActivity {
         public void onLocationChanged(Location location) {
             longitudeBest = location.getLongitude();
             latitudeBest = location.getLatitude();
+
+            Log.w(TAG, "==current longitude is "+longitudeBest);
+            Log.w(TAG, "==current latitude is "+latitudeBest);
+
+            Log.w(TAG, "***old longitude is "+oldLongitudeBest);
+            Log.w(TAG, "***old latitude is "+oldLatitudeBest);
+
+            if(oldLatitudeBest==0 && oldLongitudeBest==0){
+                oldLatitudeBest = latitudeBest;
+                oldLongitudeBest = longitudeBest;
+                Log.e(TAG, "intial 1st point is null, initialising with gps");
+                Log.e(TAG, "longitude is "+oldLongitudeBest);
+                Log.e(TAG, "latitude is "+oldLatitudeBest);
+
+
+            }
+
+            float theDistance = distance(oldLatitudeBest,oldLongitudeBest,latitudeBest, longitudeBest);
+            Log.e(TAG, "current calc of the distance is "+theDistance);
+
+            /***/
+
+            float[] results = new float[1];
+            Location.distanceBetween(
+                    latitudeBest,longitudeBest,
+                    oldLatitudeBest, oldLongitudeBest, results);
+
+            Log.w(TAG, "### Distance is: " + results[0]);
+
+            /***/
+
+
+            if(theDistance > 10){
+                oldLatitudeBest = latitudeBest;
+                oldLongitudeBest = longitudeBest;
+                Log.e(TAG, "distance is greater than 10m"+theDistance);
+                Toast.makeText(MainActivity.this, "distance is greater than 10m", Toast.LENGTH_SHORT).show();
+//                addNotification("distance is greater than 10m", "");
+            }
+
 
             runOnUiThread(new Runnable() {
                 @Override
@@ -230,6 +278,45 @@ public class MainActivity extends AppCompatActivity {
             longitudeGPS = location.getLongitude();
             latitudeGPS = location.getLatitude();
 
+            Log.w(TAG, "==current longitude is "+longitudeGPS);
+            Log.w(TAG, "==current latitude is "+latitudeGPS);
+
+            Log.w(TAG, "***old longitude is "+oldLongitudeBest);
+            Log.w(TAG, "***old latitude is "+oldLatitudeBest);
+
+            if(oldLatitudeBest==0 && oldLongitudeBest==0){
+                oldLatitudeBest = latitudeGPS;
+                oldLongitudeBest = longitudeGPS;
+                Log.e(TAG, "intial 1st point is null, initialising with gps");
+                Log.e(TAG, "longitude is "+oldLongitudeBest);
+                Log.e(TAG, "latitude is "+oldLatitudeBest);
+
+
+            }
+
+            float theDistance = distance(oldLatitudeBest,oldLongitudeBest,latitudeGPS, longitudeGPS);
+            Log.e(TAG, "current calc of the distance is "+theDistance);
+
+            /***/
+
+            float[] results = new float[1];
+            Location.distanceBetween(
+                    latitudeGPS,longitudeGPS,
+                    oldLatitudeBest, oldLongitudeBest, results);
+
+            Log.w(TAG, "### Distance is: " + results[0]);
+
+            /***/
+
+
+            if(theDistance > 10){
+                oldLatitudeBest = latitudeGPS;
+                oldLongitudeBest = longitudeGPS;
+                Log.e(TAG, "distance is greater than 10m"+theDistance);
+                Toast.makeText(MainActivity.this, "distance is greater than 10m", Toast.LENGTH_SHORT).show();
+                addNotification("distance is greater than 10m", "");
+            }
+
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -243,7 +330,7 @@ public class MainActivity extends AppCompatActivity {
                             .setContentText(longitudeValueGPS +" : "+ latitudeValueGPS)
                             .setPriority(NotificationCompat.PRIORITY_DEFAULT);*/
 
-                    addNotification(longitudeGPS +" : "+ latitudeGPS, "GPS Coords");
+                    addNotification(longitudeGPS +" : "+ latitudeGPS, "GPS Coords []");
 
                 }
             });
@@ -311,5 +398,24 @@ public class MainActivity extends AppCompatActivity {
         NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         manager.notify(0, builder.build());
     }
+
+
+    private float distance(double latA, double lngA, double latB, double lngB){
+        Location locationA = new Location("point A");
+
+        locationA.setLatitude(latA);
+        locationA.setLongitude(lngA);
+
+        Location locationB = new Location("point B");
+
+        locationB.setLatitude(latB);
+        locationB.setLongitude(lngB);
+
+        float distance = locationA.distanceTo(locationB);
+
+        return distance;
+    }
+
+
 
 }
