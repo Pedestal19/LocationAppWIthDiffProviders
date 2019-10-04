@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
     double longitudeNetwork, latitudeNetwork;
     TextView longitudeValueBest, latitudeValueBest;
     TextView longitudeValueGPS, latitudeValueGPS;
-    TextView longitudeValueNetwork, latitudeValueNetwork;
+    TextView longitudeValueNetwork, latitudeValueNetwork, tv_distance;
 
     double oldLongitudeBest=0;
     double oldLatitudeBest=0;
@@ -64,6 +64,8 @@ public class MainActivity extends AppCompatActivity {
         latitudeValueGPS = (TextView) findViewById(R.id.latitudeValueGPS);
         longitudeValueNetwork = (TextView) findViewById(R.id.longitudeValueNetwork);
         latitudeValueNetwork = (TextView) findViewById(R.id.latitudeValueNetwork);
+        tv_distance = (TextView) findViewById(R.id.tv_dist);
+
 
        /* String locationProvider = LocationManager.NETWORK_PROVIDER;
 // Or use LocationManager.GPS_PROVIDER
@@ -138,7 +140,7 @@ public class MainActivity extends AppCompatActivity {
             String provider = locationManager.getBestProvider(criteria, true);
             if(provider != null) {
 //                locationManager.requestLocationUpdates(provider, 2 * 60 * 1000, 10, locationListenerBest);
-                locationManager.requestLocationUpdates(provider, 0, 0, locationListenerBest);
+                locationManager.requestLocationUpdates(provider, 0, 10, locationListenerBest);
 
                 button.setText(R.string.pause);
                 Toast.makeText(this, "Best Provider is " + provider, Toast.LENGTH_LONG).show();
@@ -163,7 +165,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private final LocationListener locationListenerBest = new LocationListener() {
+
         public void onLocationChanged(Location location) {
+            Log.w(TAG, "@@@@@@@@@you hae moved more than 10 m");
+
             longitudeBest = location.getLongitude();
             latitudeBest = location.getLatitude();
 
@@ -186,6 +191,8 @@ public class MainActivity extends AppCompatActivity {
             float theDistance = distance(oldLatitudeBest,oldLongitudeBest,latitudeBest, longitudeBest);
             Log.e(TAG, "current calc of the distance is "+theDistance);
 
+            tv_distance.append("\n current calc of the distance is"+theDistance);
+
             /***/
 
             float[] results = new float[1];
@@ -194,6 +201,7 @@ public class MainActivity extends AppCompatActivity {
                     oldLatitudeBest, oldLongitudeBest, results);
 
             Log.w(TAG, "### Distance is: " + results[0]);
+
 
             /***/
 
